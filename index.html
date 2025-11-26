@@ -5,147 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xenber | Enterprise AI Ops</title>
     
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         body { background-color: #f3f4f6; }
-        .card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
         
         /* Navigation & Animations */
-        .nav-item:hover { background-color: #1e293b; color: white; cursor: pointer; }
+        .nav-item { cursor: pointer; transition: all 0.2s; }
+        .nav-item:hover { background-color: #1e293b; color: white; transform: translateX(5px); }
         .nav-active { background-color: #2563eb; color: white; }
         
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* Chatbot Animation */
         #chat-window { transition: all 0.3s ease-in-out; transform-origin: bottom right; }
         .chat-hidden { transform: scale(0); opacity: 0; pointer-events: none; }
         .chat-visible { transform: scale(1); opacity: 1; pointer-events: auto; }
+
+        /* Data Block Styles */
+        .data-block { padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; transition: transform 0.2s; }
+        .data-block:hover { transform: translateY(-2px); border-color: #cbd5e1; shadow: md; }
+        .data-label { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 4px; }
+        .data-value { font-size: 18px; font-weight: 800; color: #1e293b; }
     </style>
 </head>
 <body class="font-sans text-slate-800 h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-400 flex flex-col">
-        <div class="h-16 flex items-center px-6 text-white font-bold text-xl border-b border-slate-800">
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 text-slate-400 flex flex-col z-20 shadow-2xl">
+        <div class="h-16 flex items-center px-6 text-white font-bold text-xl border-b border-slate-800 tracking-wide">
             <i class="fa-solid fa-robot mr-2 text-blue-500"></i> XENBER AI
         </div>
 
         <nav class="flex-1 p-4 space-y-2">
-            <div class="text-xs uppercase font-bold mb-2">Menu</div>
-            <div onclick="showPage('dashboard')" id="btn-dashboard" class="nav-item nav-active p-3 rounded flex items-center gap-3">
-                <i class="fa-solid fa-gauge"></i> Dashboard
+            <div class="text-xs uppercase font-bold mb-2 text-slate-600">Main Menu</div>
+            
+            <div onclick="switchView('dashboard')" id="btn-dashboard" class="nav-item nav-active p-3 rounded-lg flex items-center gap-3">
+                <i class="fa-solid fa-gauge w-5 text-center"></i> Dashboard
             </div>
-            <div onclick="showPage('workforce')" id="btn-workforce" class="nav-item p-3 rounded flex items-center gap-3">
-                <i class="fa-solid fa-users"></i> Workforce
-            </div>
-            <div onclick="showPage('maintenance')" id="btn-maintenance" class="nav-item p-3 rounded flex items-center gap-3">
-                <i class="fa-solid fa-wrench"></i> Maintenance
+            
+            <!-- FORECAST BUTTON -->
+            <div onclick="switchView('forecast')" id="btn-forecast" class="nav-item p-3 rounded-lg flex items-center gap-3">
+                <i class="fa-solid fa-chart-line w-5 text-center text-purple-400"></i> KPI Forecast
             </div>
 
-            <div class="mt-8 text-xs uppercase font-bold mb-2">Data Source</div>
-            <div onclick="toggleCloudSource()" class="p-3 bg-slate-800 rounded cursor-pointer hover:bg-slate-700 border border-slate-700">
-                <div class="flex justify-between items-center">
-                    <span id="cloud-name" class="text-white font-bold">Google BigQuery</span>
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                </div>
-                <div class="text-xs mt-1 text-blue-400">Status: Connected</div>
+            <div onclick="switchView('workforce')" id="btn-workforce" class="nav-item p-3 rounded-lg flex items-center gap-3">
+                <i class="fa-solid fa-users w-5 text-center"></i> Workforce
+            </div>
+            
+            <div onclick="switchView('maintenance')" id="btn-maintenance" class="nav-item p-3 rounded-lg flex items-center gap-3">
+                <i class="fa-solid fa-wrench w-5 text-center"></i> Maintenance
             </div>
         </nav>
+        
+        <div class="p-4 border-t border-slate-800">
+             <div onclick="toggleCloud()" class="p-3 bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-700 transition border border-slate-700">
+                <div class="flex justify-between items-center">
+                    <span id="cloud-name" class="text-white font-bold text-xs">Google BigQuery</span>
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                </div>
+                <div class="text-[10px] mt-1 text-blue-400">● Live Data Stream</div>
+            </div>
+        </div>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col h-screen relative">
         
-        <header class="h-16 bg-white border-b flex justify-between items-center px-8 shadow-sm">
+        <header class="h-16 bg-white border-b flex justify-between items-center px-8 shadow-sm z-10">
             <div class="flex items-center gap-4">
-                <h2 id="page-title" class="text-xl font-bold">Operational Dashboard</h2>
-                <div id="live-clock" class="text-sm bg-slate-100 px-3 py-1 rounded text-slate-500 font-mono border">
-                    00:00:00
-                </div>
+                <h2 id="header-title" class="text-xl font-bold text-slate-800">Operational Dashboard</h2>
+                <div id="live-clock" class="text-sm bg-slate-100 px-3 py-1 rounded text-slate-500 font-mono border">00:00:00</div>
             </div>
-
-            <button onclick="resetSystem()" class="text-sm text-slate-500 hover:text-blue-600">
+            <button onclick="resetSimulation()" class="text-sm font-medium text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
                 <i class="fa-solid fa-rotate-right"></i> Reset System
             </button>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-8">
+        <main class="flex-1 overflow-y-auto p-8 bg-slate-50">
             
-            <div id="page-dashboard" class="space-y-6">
-                <div class="grid grid-cols-3 gap-6">
-                    <div class="card border-l-4 border-blue-500">
-                        <div class="text-xs font-bold text-slate-500 uppercase">Current Load</div>
-                        <div class="text-3xl font-bold" id="display-load">0%</div>
-                    </div>
-                    <div class="card border-l-4 border-green-500">
-                        <div class="text-xs font-bold text-slate-500 uppercase">Projected Savings</div>
-                        <div class="text-3xl font-bold text-green-600" id="display-savings">$0</div>
-                    </div>
-                    <div class="card border-l-4 border-amber-500">
-                        <div class="text-xs font-bold text-slate-500 uppercase">Active Alerts</div>
-                        <div class="text-3xl font-bold text-amber-600" id="display-alerts">0</div>
+            <!-- VIEW 1: DASHBOARD -->
+            <div id="view-dashboard" class="space-y-6 fade-in">
+                
+                <!-- SECTION: CSV DATA BLOCKS -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-database"></i> Latest Daily Snapshot (CSV Data)
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <!-- Block 1: Date -->
+                        <div class="data-block border-l-4 border-slate-400">
+                            <div class="data-label">Date Logged</div>
+                            <div class="data-value text-sm" id="blk-date">--</div>
+                        </div>
+                        <!-- Block 2: Revenue -->
+                        <div class="data-block border-l-4 border-green-500">
+                            <div class="data-label">Daily Revenue</div>
+                            <div class="data-value text-green-700" id="blk-revenue">--</div>
+                        </div>
+                        <!-- Block 3: Leads -->
+                        <div class="data-block border-l-4 border-orange-400">
+                            <div class="data-label">New Leads</div>
+                            <div class="data-value" id="blk-leads">--</div>
+                        </div>
+                        <!-- Block 4: Active Users -->
+                        <div class="data-block border-l-4 border-blue-400">
+                            <div class="data-label">Active Users</div>
+                            <div class="data-value" id="blk-users">--</div>
+                        </div>
+                         <!-- Block 5: Errors -->
+                         <div class="data-block border-l-4 border-red-500">
+                            <div class="data-label">System Error Rate</div>
+                            <div class="data-value text-red-600" id="blk-errors">--</div>
+                        </div>
+                        <!-- Block 6: Risk Flag (Detailed) -->
+                        <div class="data-block border-l-4 border-gray-800" id="blk-risk-card">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="data-label">Risk Status</div>
+                                    <div class="data-value" id="blk-risk">--</div>
+                                </div>
+                                <i id="blk-risk-icon" class="fa-solid fa-circle-exclamation text-slate-300"></i>
+                            </div>
+                            <div id="blk-risk-details" class="mt-2 text-xs font-semibold text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
+                                Analyzing...
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-6">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card border-l-4 border-blue-500">
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Load</div>
+                        <div class="text-3xl font-black text-slate-800 mt-1" id="kpi-load">0%</div>
+                    </div>
+                    <div class="card border-l-4 border-green-500">
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Projected Savings</div>
+                        <div class="text-3xl font-black text-green-600 mt-1" id="kpi-savings">$0</div>
+                    </div>
+                    <div class="card border-l-4 border-amber-500">
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Risks</div>
+                        <div class="text-3xl font-black text-amber-600 mt-1" id="kpi-alerts">0</div>
+                    </div>
+                </div>
+
+                <!-- Main Realtime Chart -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="col-span-2 card">
-                        <h3 class="font-bold mb-4">AI Demand Forecast (Live Stream)</h3>
+                        <h3 class="font-bold mb-4 text-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-blue-500"></i> AI Demand Forecast (Live Stream)
+                        </h3>
                         <div class="h-64"><canvas id="mainChart"></canvas></div>
                     </div>
                     
-                    <div class="bg-slate-900 text-white rounded-xl p-5 shadow-lg flex flex-col">
-                        <h3 class="font-bold border-b border-slate-700 pb-2 mb-2">
-                            <i class="fa-solid fa-lightbulb text-yellow-400"></i> Live Insights
+                    <!-- Advisor Panel -->
+                    <div class="bg-slate-900 text-white rounded-xl p-6 shadow-xl flex flex-col border border-slate-700">
+                        <h3 class="font-bold border-b border-slate-700 pb-3 mb-3 flex items-center gap-2 text-lg">
+                            <i class="fa-solid fa-brain text-purple-400"></i> AI Strategic Advisor
                         </h3>
-                        <div id="advisor-feed" class="space-y-3 overflow-y-auto flex-1 text-sm">
-                            <div class="text-slate-400 italic">Initializing AI...</div>
+                        <div id="advisor-feed" class="space-y-4 overflow-y-auto flex-1 text-sm">
+                            <div class="text-slate-400 italic">Initializing AI models...</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="card h-80 overflow-hidden flex flex-col">
-                        <h3 class="font-bold mb-2 text-slate-700">Workforce Issues</h3>
+                <!-- Tables -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card h-80 flex flex-col">
+                        <h3 class="font-bold mb-3 text-slate-700">⚠️ Workforce Attention Needed</h3>
                         <div class="flex-1 overflow-y-auto">
-                            <table class="w-full text-left text-sm"><tbody id="mini-table-workforce"></tbody></table>
+                            <table class="w-full text-left text-sm"><tbody id="dash-workforce-table"></tbody></table>
                         </div>
                     </div>
-                    <div class="card h-80 overflow-hidden flex flex-col">
-                        <h3 class="font-bold mb-2 text-slate-700">Maintenance Requests</h3>
+                    <div class="card h-80 flex flex-col">
+                        <h3 class="font-bold mb-3 text-slate-700">🔧 Maintenance Queue</h3>
                         <div class="flex-1 overflow-y-auto">
-                            <table class="w-full text-left text-sm"><tbody id="mini-table-machines"></tbody></table>
+                            <table class="w-full text-left text-sm"><tbody id="dash-resource-table"></tbody></table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="page-workforce" class="hidden space-y-6">
+            <!-- VIEW 2: FORECAST (NEW) -->
+            <div id="view-forecast" class="hidden space-y-6 fade-in">
+                <div class="card border-t-4 border-purple-500">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 class="font-bold text-2xl text-slate-800">Future Revenue Prediction (7-Day)</h3>
+                            <p class="text-slate-500 text-sm mt-1">
+                                Using <b>Linear Regression</b> on historical CSV data. 
+                                <br>Comparing <span class="text-orange-500 font-bold">Leads (Leading Indicator)</span> vs <span class="text-green-600 font-bold">Revenue (Lagging Indicator)</span>.
+                            </p>
+                        </div>
+                        <div class="text-right">
+                             <span class="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full uppercase">AI Confidence: 88.4%</span>
+                        </div>
+                    </div>
+                    
+                    <div style="height: 400px;">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+
+                    <!-- Forecast Insight Box -->
+                    <div id="forecast-insight" class="mt-8 bg-slate-100 rounded-lg p-6 border border-slate-200">
+                        <!-- JS fills this -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: WORKFORCE -->
+            <div id="view-workforce" class="hidden space-y-6 fade-in">
                 <div class="card">
-                    <h3 class="font-bold text-xl mb-4">Employee Roster & Performance</h3>
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 border-b">
-                            <tr>
-                                <th class="p-4">Name</th><th class="p-4">Role</th><th class="p-4">Fatigue</th><th class="p-4">Score</th><th class="p-4 text-right">Action</th>
-                            </tr>
+                    <h3 class="font-bold text-xl mb-4 text-slate-700">Full Employee Roster</h3>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b text-slate-500 uppercase text-xs">
+                            <tr><th class="p-4">Name</th><th class="p-4">Role</th><th class="p-4">Fatigue</th><th class="p-4">Score</th><th class="p-4 text-right">Action</th></tr>
                         </thead>
-                        <tbody id="full-table-workforce" class="divide-y"></tbody>
+                        <tbody id="full-workforce-table" class="divide-y"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="page-maintenance" class="hidden space-y-6">
+            <!-- VIEW 4: MAINTENANCE -->
+            <div id="view-maintenance" class="hidden space-y-6 fade-in">
                 <div class="card">
-                    <h3 class="font-bold text-xl mb-4">Asset Health & Scheduling</h3>
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 border-b">
-                            <tr>
-                                <th class="p-4">Machine Name</th><th class="p-4">Type</th><th class="p-4">Health</th><th class="p-4 text-right">Action</th>
-                            </tr>
+                    <h3 class="font-bold text-xl mb-4 text-slate-700">Asset Health Status</h3>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b text-slate-500 uppercase text-xs">
+                            <tr><th class="p-4">Machine</th><th class="p-4">Type</th><th class="p-4">Health</th><th class="p-4 text-right">Action</th></tr>
                         </thead>
-                        <tbody id="full-table-machines" class="divide-y"></tbody>
+                        <tbody id="full-resource-table" class="divide-y"></tbody>
                     </table>
                 </div>
             </div>
+
         </main>
 
+        <!-- CHATBOT UI -->
         <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
             <div id="chat-window" class="chat-hidden mb-4 w-80 h-96 bg-white rounded-xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
                 <div class="bg-slate-900 text-white p-3 flex justify-between items-center">
@@ -173,6 +279,7 @@
 
     </div>
 
+    <!-- Connect to the JS file -->
     <script src="script.js"></script>
 </body>
 </html>
