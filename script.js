@@ -113,9 +113,9 @@ const database = {
         { name: "Sarah J.", role: "Engineer", fatigue: 30, score: 135 },
         { name: "Mike R.", role: "Logistics", fatigue: 52, score: 65 }, 
         { name: "Jessica T.", role: "Sales", fatigue: 10, score: 88 },
-        { name: "David B.", role: "Manager", fatigue: 85, score: 75 },
+        { name: "David B.", role: "Manager", fatigue: 75, score: 75 },
         { name: "Alex K.", role: "Intern", fatigue: 20, score: 90 },
-        { name: "Priya M.", role: "DevOps", fatigue: 95, score: 55 }
+        { name: "Priya M.", role: "DevOps", fatigue: 60, score: 77 }
     ],
     machines: [
         { name: "Server A", type: "Hardware", health: 90 },
@@ -267,10 +267,60 @@ function updateScreen() {
     }
 
     drawTables();
-    
+// ... inside updateScreen function ...
     const advisorBox = document.getElementById('advisor-feed');
-    if (latest.Risk_Flag === "Critical" || riskCount > 0) {
-        advisorBox.innerHTML = `<div class="bg-red-900/50 p-3 rounded border border-red-500 text-red-200 text-xs"><i class="fa-solid fa-triangle-exclamation mr-2"></i><b>CRITICAL:</b> Risk Flag is ${latest.Risk_Flag}. ${riskCount} active risks detected.</div>`;
+    
+    let opsContent = "";
+    let hrContent = "";
+    let envContent = "";
+    let finContent = "";
+    let totalRiskCount = 0;
+
+    // 1. OPERATIONS (Health < 20)
+    const badMachines = database.machines.filter(m => m.health < 10);
+    if (badMachines.length > 0) {
+        opsContent += `<div class="mb-2"><div class="text-[10px] font-bold text-red-300 border-b border-red-700/50 mb-1">OPERATIONS</div>`;
+        badMachines.forEach(m => {
+            opsContent += `<div class="pl-2 mb-1">• <b>${m.name} is down</b> <span class="opacity-75 italic text-[10px] block pl-3">↳ Action: Emmergency Repair</span></div>`;
+        });
+        opsContent += `</div>`;
+        totalRiskCount += badMachines.length;
+    }
+
+    // 2. HR (Fatigue > 85)
+    const tiredStaff = database.employees.filter(e => e.fatigue > 85);
+    if (tiredStaff.length > 0) {
+        hrContent += `<div class="mb-2"><div class="text-[10px] font-bold text-red-300 border-b border-red-700/50 mb-1">HUMAN RESOURCES</div>`;
+        tiredStaff.forEach(e => {
+            hrContent += `<div class="pl-2 mb-1">• <b>${e.name} is exhausted</b> <span class="opacity-75 italic text-[10px] block pl-3">↳ Action: Give Rest</span></div>`;
+        });
+        hrContent += `</div>`;
+        totalRiskCount += tiredStaff.length;
+    }
+
+    // 3. WEATHER
+    if (database.weatherForecast.some(d => d.type === 'Stormy')) {
+        envContent = `<div class="mb-2"><div class="text-[10px] font-bold text-red-300 border-b border-red-700/50 mb-1">WEATHER</div>
+                        <div class="pl-2">• <b>Storm Alert</b> <span class="opacity-75 italic text-[10px] block pl-3">↳ Action: WFH</span></div>
+                      </div>`;
+        totalRiskCount++;
+    }
+
+    // RENDER LOGIC
+    if (totalRiskCount > 0) {
+        advisorBox.innerHTML = `
+            <div class="bg-red-900/50 p-3 rounded border border-red-500 text-red-200 text-xs shadow-lg">
+                <div class="font-bold border-b border-red-500 pb-2 mb-2 flex justify-between items-center">
+                    <span><i class="fa-solid fa-triangle-exclamation mr-2"></i>ACTION REQUIRED</span>
+                    <span class="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] shadow-sm">${totalRiskCount}</span>
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    ${opsContent}
+                    ${hrContent}
+                    ${envContent}
+                </div>
+            </div>`;
     } else {
         advisorBox.innerHTML = `<div class="bg-green-900/30 p-3 rounded border border-green-500 text-green-200 text-xs"><i class="fa-solid fa-check-circle mr-2"></i><b>OPTIMAL:</b> Systems stable. Forecast suggests growth.</div>`;
     }
