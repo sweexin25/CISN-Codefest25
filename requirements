@@ -1,0 +1,9 @@
+Require a csv file that records
+Date,
+Daily_Revenue,
+New_Leads,
+Active_Users,
+Avg_Employee_Mood_Score,
+Overtime_Hours_Logged,
+System_Error_Rate,
+Risk_Flag
