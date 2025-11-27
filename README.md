@@ -29,8 +29,8 @@ Convert raw data to useful information (real-time data -> efficiency, reduce cos
 - The webpage will run on the browser.\
 
 ## Contributors
-Isaac Toh Zhen Yong
-Tan Swee Xin
-Leow Zhen Xun
-Chong Ming Zhe
-Teoh Jun Hong
+- Isaac Toh Zhen Yong
+- Tan Swee Xin
+- Leow Zhen Xun
+- Chong Ming Zhe
+- Teoh Jun Hong
