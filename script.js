@@ -118,11 +118,11 @@ const database = {
         { name: "Priya M.", role: "DevOps", fatigue: 95, score: 55 }
     ],
     machines: [
-        { name: "Server Cluster A", type: "IT", health: 90 },
-        { name: "Assembly Line 1", type: "Factory", health: 45 }, 
-        { name: "Delivery Truck 4", type: "Fleet", health: 60 },
-        { name: "Cooling System", type: "Facility", health: 20 },
-        { name: "Packaging Bot", type: "Factory", health: 85 }
+        { name: "Server A", type: "Hardware", health: 90 },
+        { name: "Server B", type: "Hardware", health: 65 }, 
+        { name: "Cloud Infrastructure", type: "Cloud", health: 100 },
+        { name: "Cooling System", type: "Facility", health: 75 },
+        { name: "Router", type: "Internet", health: 85 }
     ],
     weatherForecast: []
 };
@@ -296,9 +296,9 @@ function drawTables() {
     database.machines.forEach((m, i) => {
         let badgeClass = "", icon = "", statusText = "";
         
-        if (m.health < 40) { badgeClass = "badge-red"; icon = "fa-circle-xmark"; statusText = "FAILURE"; } 
-        else if (m.health < 70) { badgeClass = "badge-amber"; icon = "fa-triangle-exclamation"; statusText = "DEGRADING"; } 
-        else if (m.health < 90) { badgeClass = "badge-blue"; icon = "fa-wrench"; statusText = "OPERATIONAL"; } 
+        if (m.health < 20) { badgeClass = "badge-red"; icon = "fa-circle-xmark"; statusText = "FAILURE"; } 
+        else if (m.health < 60) { badgeClass = "badge-amber"; icon = "fa-triangle-exclamation"; statusText = "DEGRADING"; } 
+        else if (m.health < 100) { badgeClass = "badge-blue"; icon = "fa-wrench"; statusText = "OPERATIONAL"; } 
         else { badgeClass = "badge-green"; icon = "fa-check-circle"; statusText = "OPTIMAL"; }
         
         let badge = `<span class="status-badge ${badgeClass}"><i class="fa-solid ${icon} mr-1"></i> ${statusText}</span>`;
@@ -384,7 +384,7 @@ function renderWeatherModal() {
         riskText.className = "text-lg font-black text-amber-700";
         riskText.innerText = riskLevel;
         wfhText.className = "text-2xl font-black text-amber-600 border-2 border-dashed border-amber-300 bg-amber-50 p-3 rounded-xl";
-        wfhText.innerText = "⚠️ HYBRID / OPTIONAL";
+        wfhText.innerText = "⚠️ HYBRID ";
     } else {
         bannerBox.className = "p-4 rounded-xl border border-green-300 bg-green-50 flex items-center gap-4";
         iconBox.className = "w-12 h-12 rounded-full flex items-center justify-center bg-green-200 text-green-600 text-2xl";
@@ -392,7 +392,7 @@ function renderWeatherModal() {
         riskText.className = "text-lg font-black text-green-700";
         riskText.innerText = riskLevel;
         wfhText.className = "text-2xl font-black text-green-600 border-2 border-dashed border-green-300 bg-green-50 p-3 rounded-xl";
-        wfhText.innerText = "🏢 OFFICE OPEN";
+        wfhText.innerText = "🏢 OFFICE ";
     }
 
     // Render Grid
@@ -479,12 +479,12 @@ setInterval(() => {
     database.timeLabels.shift();
 
     database.machines.forEach(machine => {
-        if(machine.health > 0) machine.health -= 5; 
+        if(machine.health > 0) machine.health -= 2; 
         if(machine.health < 0) machine.health = 0;
     });
     
     database.employees.forEach(emp => {
-        if(emp.fatigue < 100) emp.fatigue += 3; 
+        if(emp.fatigue < 100) emp.fatigue ++; 
     });
 
     updateScreen();
