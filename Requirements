@@ -1,0 +1,14 @@
+Require a csv file that records
+Date,
+Daily_Revenue,
+New_Leads,
+Active_Users,
+Avg_Employee_Mood_Score,
+Overtime_Hours_Logged,
+System_Error_Rate,
+Risk_Flag
+
+To run the program, you will need to install any browser (Google Chrome)
+Then download both index.html and script.js files and put inside a new folder.
+Find the index.html and open that file once both index.html and script.js files are in a same folder.
+Finally, the webpage will run on the browser.
