@@ -26,7 +26,7 @@ Convert raw data to useful information (real-time data -> efficiency, reduce cos
 - Install any browser
 - Download both index.html and script.js files and put inside a new folder.
 - Find the index.html and open that file once both index.html and script.js files are in a same folder.
-- The webpage will run on the browser.\
+- The webpage will run on the browser
 
 ## Contributors
 - Isaac Toh Zhen Yong
